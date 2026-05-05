@@ -1,1 +1,45 @@
+export class Cocoon {
+    constructor(x, y, race) {
+        this.x = x;
+        this.y = y;
+        this.race = race;
+        this.hp = race.hp;
+        this.maxHp = race.hp;
+        this.radius = 25;
+    }
 
+    draw(ctx, scale) {
+        const lx = this.x * scale;
+        const ly = this.y * scale;
+
+        // Паутина под коконом
+        ctx.strokeStyle = this.race.color + "55"; // Прозрачность
+        ctx.lineWidth = 1;
+        for(let i=0; i<8; i++) {
+            ctx.beginPath();
+            ctx.moveTo(lx, ly);
+            ctx.lineTo(lx + Math.cos(i) * 40 * scale, ly + Math.sin(i) * 40 * scale);
+            ctx.stroke();
+        }
+
+        // Тело кокона (яйцо)
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, this.radius * scale * 0.8, this.radius * scale, 0, 0, Math.PI * 2);
+        ctx.fillStyle = this.race.color;
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Полоска здоровья
+        this.drawHP(ctx, lx, ly, scale);
+    }
+
+    drawHP(ctx, lx, ly, scale) {
+        const w = 50 * scale;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(lx - w/2, ly - 45 * scale, w, 6 * scale);
+        ctx.fillStyle = "#27ae60";
+        ctx.fillRect(lx - w/2, ly - 45 * scale, w * (this.hp / this.maxHp), 6 * scale);
+    }
+}
