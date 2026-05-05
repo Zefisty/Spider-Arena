@@ -4,7 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Spider Arena</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root { --bg: #0a0b0d; --panel: #14171c; --border: #2c313a; }
+        
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; touch-action: none; 
+        }
+        
+        body { 
+            background-color: #000; color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            height: 100dvh; /* Динамическая высота для мобилок! */
+            display: flex; justify-content: center; overflow: hidden; 
+        }
+        
+        #app { 
+            width: 100%; max-width: 500px; height: 100dvh; 
+            display: flex; flex-direction: column; 
+            background: var(--bg); border-left: 1px solid var(--border); 
+            border-right: 1px solid var(--border); 
+        }
+        
+        .ui-panel { 
+            background: var(--panel); padding: 10px; 
+            border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; z-index: 10; 
+        }
+        
+        .top { justify-content: space-between; height: 60px; flex-shrink: 0; }
+        .game-logo { font-size: 12px; font-weight: bold; letter-spacing: 2px; opacity: 0.8; }
+        
+        #arena-container { 
+            flex-grow: 1; position: relative; display: flex; 
+            align-items: center; justify-content: center; padding: 10px; 
+            background: radial-gradient(circle, #1a1d23 1px, transparent 1px); 
+            background-size: 20px 20px; overflow: hidden; 
+        }
+        
+        canvas { 
+            width: 100%; aspect-ratio: 1 / 1; background: #0d0f12; 
+            border: 2px solid var(--border); border-radius: 15px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+        }
+        
+        .selection-label { 
+            text-align: center; font-size: 10px; letter-spacing: 1px; 
+            padding: 5px; color: #636d83; flex-shrink: 0; 
+        }
+        
+        .bottom { 
+            border-top: 1px solid var(--border); height: 140px; 
+            padding: 10px; flex-shrink: 0; border-bottom: none; 
+        }
+        
+        .race-list { 
+            display: flex; gap: 8px; overflow-x: auto; 
+            width: 100%; height: 100%; padding-bottom: 5px; align-items: center; 
+        }
+        
+        .race-card { 
+            min-width: 90px; height: 110px; 
+            background: linear-gradient(145deg, #1e2227, #14171c); 
+            border: 2px solid #3e4451; border-radius: 10px; 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; flex-shrink: 0; cursor: pointer; 
+        }
+        
+        .race-card.active { border-color: var(--race-color); box-shadow: 0 0 15px var(--race-color); }
+        .race-card .icon { font-size: 24px; margin-bottom: 8px; }
+        .race-card .name { font-size: 8px; text-align: center; font-weight: bold; }
+        
+        .btn-icon, .btn-wiki { 
+            background: #2c313a; border: 1px solid #4e5565; color: #fff; 
+            padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; 
+        }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -25,11 +101,135 @@
         <div class="selection-label">ВЫБОР РАСЫ</div>
 
         <footer class="ui-panel bottom">
-            <div id="race-selector" class="race-list">
-                </div>
+            <div id="race-selector" class="race-list"></div>
         </footer>
     </div>
     
-    <script src="main.js"></script>
+    <script>
+        const CONFIG = {
+            RACES: {
+                SHADOW: { id: 'shadow', name: 'ТЕНЕВЫЕ', color: '#9d50bb', icon: '🕷️', hp: 300 },
+                SAND:   { id: 'sand',   name: 'ПЕСЧАНЫЕ', color: '#e67e22', icon: '🦂', hp: 250 },
+                VENOM:  { id: 'venom',  name: 'ЯДОВИТЫЙ', color: '#27ae60', icon: '🧪', hp: 220 },
+                FROST:  { id: 'frost',  name: 'МОРОЗНЫЕ', color: '#2980b9', icon: '❄️', hp: 350 },
+                STONE:  { id: 'stone',  name: 'КАМЕННЫЕ', color: '#f1c40f', icon: '🧱', hp: 450 }
+            },
+            LOGICAL_SIZE: 800
+        };
+
+        class Cocoon {
+            constructor(x, y, race) {
+                this.x = x; this.y = y; this.race = race;
+                this.hp = race.hp; this.maxHp = race.hp;
+                this.radius = 25; this.spawnTimer = 0;
+            }
+            update(dt) {
+                if (!dt) return;
+                this.spawnTimer += dt;
+                if (this.spawnTimer >= 3000) {
+                    this.spawnTimer = 0;
+                    console.log("Спавн паука от расы:", this.race.name);
+                }
+            }
+            draw(ctx, scale) {
+                const lx = this.x * scale; const ly = this.y * scale;
+                ctx.strokeStyle = this.race.color + "44";
+                for(let i=0; i<8; i++) {
+                    ctx.beginPath(); ctx.moveTo(lx, ly);
+                    ctx.lineTo(lx + Math.cos(i*0.8)*40*scale, ly + Math.sin(i*0.8)*40*scale);
+                    ctx.stroke();
+                }
+                ctx.beginPath();
+                ctx.ellipse(lx, ly, this.radius*scale*0.8, this.radius*scale, 0, 0, Math.PI*2);
+                ctx.fillStyle = this.race.color; ctx.fill();
+                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+                const w = 50 * scale;
+                ctx.fillStyle = "#000"; ctx.fillRect(lx - w/2, ly - 45*scale, w, 6*scale);
+                ctx.fillStyle = this.race.color; ctx.fillRect(lx - w/2, ly - 45*scale, w * (this.hp/this.maxHp), 6*scale);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const raceSelector = document.getElementById('race-selector');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resetBtn = document.getElementById('reset-btn');
+
+            let selectedRace = CONFIG.RACES.SHADOW;
+            let entities = [];
+            let isPaused = false;
+            let lastTime = performance.now();
+
+            // Создаем карточки интерфейса
+            function initUI() {
+                raceSelector.innerHTML = '';
+                Object.values(CONFIG.RACES).forEach(race => {
+                    const card = document.createElement('div');
+                    card.className = `race-card ${race.id === selectedRace.id ? 'active' : ''}`;
+                    card.style.setProperty('--race-color', race.color);
+                    card.innerHTML = `<div class="icon">${race.icon}</div><div class="name">${race.name}</div>`;
+                    
+                    card.onclick = () => {
+                        selectedRace = race;
+                        document.querySelectorAll('.race-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                    };
+                    raceSelector.appendChild(card);
+                });
+
+                pauseBtn.onclick = () => {
+                    isPaused = !isPaused;
+                    pauseBtn.innerText = isPaused ? '▶' : '⏸';
+                };
+
+                resetBtn.onclick = () => { entities = []; };
+            }
+
+            // Обрабатываем клики по арене
+            const handleInput = (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                const scaleX = CONFIG.LOGICAL_SIZE / rect.width;
+                const scaleY = CONFIG.LOGICAL_SIZE / rect.height;
+                
+                const x = (clientX - rect.left) * scaleX;
+                const y = (clientY - rect.top) * scaleY;
+                
+                if (entities.length < 8) entities.push(new Cocoon(x, y, selectedRace));
+            };
+
+            canvas.addEventListener('touchstart', handleInput, { passive: false });
+            canvas.addEventListener('mousedown', handleInput);
+
+            // Игровой цикл
+            function gameLoop(timestamp) {
+                const dt = timestamp - lastTime;
+                lastTime = timestamp;
+                
+                const displayWidth = canvas.clientWidth;
+                if (canvas.width !== displayWidth) {
+                    canvas.width = displayWidth;
+                    canvas.height = displayWidth;
+                }
+                
+                const scale = canvas.width / CONFIG.LOGICAL_SIZE;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                entities.forEach(ent => {
+                    if (!isPaused && ent.update) ent.update(dt > 100 ? 16 : dt);
+                    ent.draw(ctx, scale);
+                });
+                
+                requestAnimationFrame(gameLoop);
+            }
+
+            initUI();
+            requestAnimationFrame(gameLoop);
+        });
+    </script>
 </body>
 </html>
