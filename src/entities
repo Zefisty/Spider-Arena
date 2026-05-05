@@ -6,21 +6,34 @@ export class Cocoon {
         this.hp = race.hp;
         this.maxHp = race.hp;
         this.radius = 25;
+        this.spawnTimer = 0;
+    }
+
+    update(dt) {
+        if (!dt) return;
+        this.spawnTimer += dt;
+        if (this.spawnTimer >= 3000) {
+            this.spawnTimer = 0;
+            // Здесь скоро добавим вызов создания паука
+            console.log("Spawn spider from", this.race.name);
+        }
     }
 
     draw(ctx, scale) {
         const lx = this.x * scale;
         const ly = this.y * scale;
 
-        // Паутина под коконом
-        ctx.strokeStyle = this.race.color + "55"; // Прозрачность
+        // Эффект паутины под коконом
+        ctx.save();
+        ctx.strokeStyle = this.race.color + "44";
         ctx.lineWidth = 1;
         for(let i=0; i<8; i++) {
             ctx.beginPath();
             ctx.moveTo(lx, ly);
-            ctx.lineTo(lx + Math.cos(i) * 40 * scale, ly + Math.sin(i) * 40 * scale);
+            ctx.lineTo(lx + Math.cos(i * 0.8) * 45 * scale, ly + Math.sin(i * 0.8) * 45 * scale);
             ctx.stroke();
         }
+        ctx.restore();
 
         // Тело кокона (яйцо)
         ctx.beginPath();
@@ -32,10 +45,6 @@ export class Cocoon {
         ctx.stroke();
         
         // Полоска здоровья
-        this.drawHP(ctx, lx, ly, scale);
-    }
-
-    drawHP(ctx, lx, ly, scale) {
         const w = 50 * scale;
         ctx.fillStyle = "#000";
         ctx.fillRect(lx - w/2, ly - 45 * scale, w, 6 * scale);
