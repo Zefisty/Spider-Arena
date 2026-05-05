@@ -1,123 +1,89 @@
-:root {
-    --bg: #0a0b0d;
-    --panel: #14171c;
-    --border: #2c313a;
-    --shadow: #9d50bb;
-}
+<style>
+    :root { --bg: #0a0b0d; --panel: #14171c; --border: #2c313a; }
+    
+    * { 
+        margin: 0; padding: 0; box-sizing: border-box; 
+        -webkit-tap-highlight-color: transparent; 
+        user-select: none; 
+    }
+    
+    body { 
+        background-color: #000; color: #fff; 
+        font-family: 'Segoe UI', sans-serif; 
+        height: 100dvh; 
+        display: flex; justify-content: center; overflow: hidden; 
+    }
+    
+    #app { 
+        width: 100%; max-width: 500px; height: 100dvh; 
+        display: flex; flex-direction: column; 
+        background: var(--bg); border-left: 1px solid var(--border); 
+        border-right: 1px solid var(--border); 
+    }
+    
+    .ui-panel { 
+        background: var(--panel); padding: 10px; 
+        border-bottom: 1px solid var(--border); 
+        display: flex; align-items: center; z-index: 10; 
+    }
+    
+    .top { justify-content: space-between; height: 60px; flex-shrink: 0; }
+    
+    /* Контейнер арены - здесь touch-action: none нужен, чтобы не скроллить экран при рисовании */
+    #arena-container { 
+        flex-grow: 1; position: relative; display: flex; 
+        align-items: center; justify-content: center; padding: 10px; 
+        background: radial-gradient(circle, #1a1d23 1px, transparent 1px); 
+        background-size: 20px 20px; overflow: hidden; 
+        touch-action: none; 
+    }
+    
+    canvas { 
+        width: 100%; aspect-ratio: 1 / 1; background: #0d0f12; 
+        border: 2px solid var(--border); border-radius: 15px; 
+    }
+    
+    .selection-label { 
+        text-align: center; font-size: 10px; letter-spacing: 1px; 
+        padding: 5px; color: #636d83; flex-shrink: 0; 
+    }
+    
+    .bottom { 
+        border-top: 1px solid var(--border); height: 150px; 
+        padding: 15px 10px; flex-shrink: 0; 
+    }
+    
+    /* ИСПРАВЛЕННЫЙ СКРОЛЛ ПАНЕЛИ */
+    .race-list { 
+        display: flex; gap: 12px; 
+        overflow-x: auto; /* Включаем прокрутку */
+        overflow-y: hidden;
+        width: 100%; height: 100%; 
+        padding-bottom: 10px; 
+        align-items: center; 
+        touch-action: pan-x; /* Разрешаем только горизонтальное движение пальцем! */
+        -webkit-overflow-scrolling: touch; /* Плавность на iPhone */
+    }
+    
+    /* Скрываем некрасивый скроллбар */
+    .race-list::-webkit-scrollbar { display: none; }
 
-* {
-    margin: 0; padding: 0; box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none; touch-action: none;
-}
-
-body {
-    background-color: #000;
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
-}
-
-#app {
-    width: 100%;
-    max-width: 500px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-}
-
-.ui-panel {
-    background: var(--panel);
-    padding: 10px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    z-index: 10;
-}
-
-.top { justify-content: space-between; height: 60px; }
-
-.game-logo {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    opacity: 0.8;
-}
-
-#arena-container {
-    flex-grow: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    background: radial-gradient(circle, #1a1d23 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-
-canvas {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: #0d0f12;
-    border: 2px solid var(--border);
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-
-.selection-label {
-    text-align: center;
-    font-size: 10px;
-    letter-spacing: 1px;
-    padding: 5px;
-    color: #636d83;
-}
-
-.bottom {
-    border-top: 1px solid var(--border);
-    height: 160px;
-    padding: 10px;
-}
-
-.race-list {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    width: 100%;
-    padding-bottom: 5px;
-}
-
-.race-card {
-    min-width: 90px;
-    height: 120px;
-    background: linear-gradient(145deg, #1e2227, #14171c);
-    border: 2px solid #3e4451;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.race-card.active {
-    border-color: var(--race-color);
-    box-shadow: 0 0 15px var(--race-color);
-}
-
-.race-card .icon { font-size: 24px; margin-bottom: 8px; }
-.race-card .name { font-size: 8px; text-align: center; font-weight: bold; }
-
-.btn-icon, .btn-wiki {
-    background: #2c313a;
-    border: 1px solid #4e5565;
-    color: #fff;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 12px;
-}
+    .race-card { 
+        min-width: 100px; height: 110px; 
+        background: linear-gradient(145deg, #1e2227, #14171c); 
+        border: 2px solid #3e4451; border-radius: 12px; 
+        display: flex; flex-direction: column; align-items: center; 
+        justify-content: center; flex-shrink: 0; 
+    }
+    
+    .race-card.active { border-color: var(--race-color); box-shadow: 0 0 15px var(--race-color); }
+    .race-card .icon { font-size: 28px; margin-bottom: 8px; }
+    .race-card .name { font-size: 9px; text-align: center; font-weight: bold; text-transform: uppercase; }
+    
+    .btn-icon, .btn-wiki { 
+        background: #2c313a; border: 1px solid #4e5565; color: #fff; 
+        padding: 8px 12px; border-radius: 6px; font-size: 12px; 
+        transition: transform 0.1s;
+    }
+    .btn-icon:active { transform: scale(0.9); background: #3e4451; }
+</style>
