@@ -2,13 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Spider Arena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spider Strategy | Mobile</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="app">
+        <header class="ui-panel top">
+            <div class="controls-left">
+                <button class="btn-icon" id="speed-btn">x1.0</button>
+                <button class="btn-icon" id="pause-btn">⏸</button>
+                <button class="btn-icon" id="reset-btn">🔄</button>
+            </div>
+            <button class="btn-wiki" id="wiki-btn">📖 СПРАВОЧНИК</button>
+        </header>
 
-<canvas id="game"></canvas>
+        <main id="arena-container">
+            <canvas id="gameCanvas"></canvas>
+        </main>
 
-<script src="main.js"></script>
+        <footer class="ui-panel bottom">
+            <div id="race-selector" class="race-list"></div>
+        </footer>
+    </div>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
