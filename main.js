@@ -1,44 +1,55 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+import { CONFIG } from './src/core.js';
+import { Cocoon } from './src/entities.js';
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const raceSelector = document.getElementById('race-selector');
 
-// 🕷️ массив пауков
-let spiders = [];
+let selectedRace = CONFIG.RACES.SHADOW;
+let entities = [];
 
-// создаём 20 пауков
-for (let i = 0; i < 20; i++) {
-    spiders.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        size: 6 + Math.random() * 6
+function initUI() {
+    Object.values(CONFIG.RACES).forEach(race => {
+        const card = document.createElement('div');
+        card.className = `race-card ${race.id === selectedRace.id ? 'active' : ''}`;
+        card.style.setProperty('--race-color', race.color);
+        card.innerHTML = `<span>${race.icon}</span><div style="font-size:8px">${race.name}</div>`;
+        card.onclick = () => {
+            selectedRace = race;
+            document.querySelectorAll('.race-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+        };
+        raceSelector.appendChild(card);
     });
 }
 
-// игровой цикл
-function gameLoop() {
+const placeCocoon = (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    const x = (clientX - rect.left) / rect.width * CONFIG.LOGICAL_SIZE;
+    const y = (clientY - rect.top) / rect.height * CONFIG.LOGICAL_SIZE;
+
+    if (entities.length < 8) {
+        entities.push(new Cocoon(x, y, selectedRace));
+    }
+};
+
+canvas.addEventListener('touchstart', placeCocoon, { passive: false });
+canvas.addEventListener('mousedown', placeCocoon);
+
+function update() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientWidth;
+    const scale = canvas.width / CONFIG.LOGICAL_SIZE;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    spiders.forEach(spider => {
-        // движение
-        spider.x += spider.vx;
-        spider.y += spider.vy;
-
-        // отскок от стен
-        if (spider.x < 0 || spider.x > canvas.width) spider.vx *= -1;
-        if (spider.y < 0 || spider.y > canvas.height) spider.vy *= -1;
-
-        // рисуем
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(spider.x, spider.y, spider.size, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    requestAnimationFrame(gameLoop);
+    entities.forEach(ent => ent.draw(ctx, scale));
+    
+    requestAnimationFrame(update);
 }
 
-gameLoop();
+initUI();
+update();
