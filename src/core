@@ -1,10 +1,10 @@
 export const CONFIG = {
     RACES: {
-        SHADOW: { id: 'shadow', name: 'ТЕНЕВЫЕ', color: '#9d50bb', icon: '🕷️', hp: 300 },
-        SAND:   { id: 'sand',   name: 'ПЕСЧАНЫЕ', color: '#e67e22', icon: '🦂', hp: 250 },
-        VENOM:  { id: 'venom',  name: 'ЯДОВИТЫЙ', color: '#27ae60', icon: '🧪', hp: 220 },
-        FROST:  { id: 'frost',  name: 'МОРОЗНЫЕ', color: '#2980b9', icon: '❄️', hp: 350 },
-        STONE:  { id: 'stone',  name: 'КАМЕННЫЕ', color: '#f1c40f', icon: '🧱', hp: 450 }
+        SHADOW: { id: 'shadow', name: 'ТЕНЕВЫЕ ПЛЕТУНЫ', color: '#9d50bb', icon: '🕷️', hp: 300 },
+        SAND:   { id: 'sand',   name: 'ПЕСЧАНЫЕ ОХОТНИКИ', color: '#e67e22', icon: '🦂', hp: 250 },
+        VENOM:  { id: 'venom',  name: 'ЯДОВИТЫЙ РОЙ', color: '#27ae60', icon: '🧪', hp: 220 },
+        FROST:  { id: 'frost',  name: 'МОРОЗНЫЕ ТКАЛИ', color: '#2980b9', icon: '❄️', hp: 350 },
+        STONE:  { id: 'stone',  name: 'КАМЕННЫЕ СТРАЖИ', color: '#f1c40f', icon: '🧱', hp: 450 }
     },
     LOGICAL_SIZE: 800
 };
