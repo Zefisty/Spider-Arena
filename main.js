@@ -7,8 +7,9 @@ const raceSelector = document.getElementById('race-selector');
 
 let selectedRace = CONFIG.RACES.SHADOW;
 let entities = [];
-let lastTime = 0;
+let isPaused = false;
 
+// Инициализация интерфейса
 function initUI() {
     raceSelector.innerHTML = '';
     Object.values(CONFIG.RACES).forEach(race => {
@@ -24,18 +25,32 @@ function initUI() {
         };
         raceSelector.appendChild(card);
     });
+
+    // Кнопки управления
+    document.getElementById('pause-btn').onclick = () => {
+        isPaused = !isPaused;
+        document.getElementById('pause-btn').innerText = isPaused ? '▶' : '⏸';
+    };
+
+    document.getElementById('reset-btn').onclick = () => {
+        entities = [];
+    };
 }
 
+// Обработка касаний
 const handleInput = (e) => {
     e.preventDefault();
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    const x = (clientX - rect.left) / rect.width * CONFIG.LOGICAL_SIZE;
-    const y = (clientY - rect.top) / rect.height * CONFIG.LOGICAL_SIZE;
+    const scaleX = CONFIG.LOGICAL_SIZE / rect.width;
+    const scaleY = CONFIG.LOGICAL_SIZE / rect.height;
+
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
     
-    if (entities.length < 8) {
+    if (x >= 0 && x <= CONFIG.LOGICAL_SIZE && y >= 0 && y <= CONFIG.LOGICAL_SIZE) {
         entities.push(new Cocoon(x, y, selectedRace));
     }
 };
@@ -43,18 +58,19 @@ const handleInput = (e) => {
 canvas.addEventListener('touchstart', handleInput, { passive: false });
 canvas.addEventListener('mousedown', handleInput);
 
-function gameLoop(timestamp) {
-    const dt = timestamp - lastTime;
-    lastTime = timestamp;
+function gameLoop() {
+    // Подстройка разрешения под экран
+    const displayWidth = canvas.clientWidth;
+    if (canvas.width !== displayWidth) {
+        canvas.width = displayWidth;
+        canvas.height = displayWidth;
+    }
 
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientWidth;
     const scale = canvas.width / CONFIG.LOGICAL_SIZE;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     entities.forEach(ent => {
-        if (ent.update) ent.update(dt);
+        if (!isPaused && ent.update) ent.update(16); // 16ms approx for 60fps
         ent.draw(ctx, scale);
     });
     
@@ -62,4 +78,4 @@ function gameLoop(timestamp) {
 }
 
 initUI();
-requestAnimationFrame(gameLoop);
+gameLoop();
